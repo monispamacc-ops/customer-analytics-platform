@@ -86,3 +86,16 @@ This is a system that takes retail transaction data and divides it into groups b
 
 * `segmented_customer_data.csv`. This is a spreadsheet that has all of the customer data with each customer tagged as a VIP, regular shopper or, at-risk customer.
 
+---
+
+## 📈 Module 2: Predictive Churn Modeling
+Built a supervised machine learning classification pipeline to identify high-risk customers before they churn, allowing the business to run proactive retention campaigns.
+
+### Key Accomplishments:
+* **Target Engineering:** Defined "churn" dynamically by analyzing customer inactivity thresholds derived from the RFM segmentation model.
+* **Model Selection:** Implemented a **Random Forest Classifier** to handle non-linear behavioral relationships and prevent overfitting.
+* **High Performance:** Achieved an exceptional **99% accuracy score** on the test set, validated using a Confusion Matrix and ROC-AUC curve evaluation.
+* **Business Insights:** Extracted **Feature Importances**, revealing that **Recency** (days since last purchase) is the primary driver of customer flight risk (~49% decision weight), followed by Frequency and Monetary value.
+
+### Data Sciene Skills Demonstrated:
+`Supervised Learning` | `Classification` | `Random Forest` | `Model Evaluation (Precision/Recall)` | `Feature Importance Analysis`
