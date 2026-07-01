@@ -99,3 +99,18 @@ Built a supervised machine learning classification pipeline to identify high-ris
 
 ### Data Sciene Skills Demonstrated:
 `Supervised Learning` | `Classification` | `Random Forest` | `Model Evaluation (Precision/Recall)` | `Feature Importance Analysis`
+
+---
+
+## 🛍️ Module 3: Collaborative Filtering Recommendation Engine
+Developed an item-to-item and user-personalized recommendation system utilizing behavioral buying patterns to boost customer retention and lifetime value (LTV).
+
+### Key Accomplishments:
+* **High-Dimensional Matrix Generation:** Structured a sparse **Item-Customer Matrix** consisting of 4,223 unique products and 4,372 unique customers.
+* **Mathematical Vector Matching:** Implemented **Cosine Similarity** to compute mathematical angles between product transaction vectors, bypassing data scale issues caused by wholesale purchasing volumes.
+* **Automated Discovery:** Successfully matched complementary items (e.g., automatically pairing the *I Love London Mini Backpack* with *Dolly Girl* children's accessories) entirely based on co-purchase histories without manual catalog tagging.
+* **Personalized Scoring Pipeline:** Built an aggregation function that reads a customer's entire historical catalog interaction, weighs it by purchase volume, filters out previously purchased items, and delivers top-5 unique personalized suggestions.
+
+### Data Science Concepts Demonstrated:
+`Collaborative Filtering` | `Vector Space Modeling` | `Cosine Similarity` | `High-Dimensional Sparse Matrices` | `Recommendation Systems`
+
