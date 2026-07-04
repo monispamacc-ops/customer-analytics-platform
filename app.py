@@ -98,55 +98,94 @@ with tab1:
         * **🛍️ New / Casual:** Recent users with Recency $\le$ 14 days and Frequency $\le$ 2 orders.
         * **⚠️ Churned / At-Risk:** Inactive users whose last purchase exceeds {int(RECENCY_LIMIT)} days.
         """)
+    
     col1, col2, col3 = st.columns(3)
-    with col1:
-        input_recency = st.number_input(
-            "Recency (Days since last purchase)", 
-            min_value=0, 
-            value=12,
-            help="How many days have passed since the customer last placed an order. Lower is better."
-        )
-    with col2:
-        input_frequency = st.number_input(
-            "Frequency (Total number of purchases)", 
-            min_value=1, 
-            value=4,
-            help="The total number of successful orders this customer has ever made."
-        )
-    with col3:
-        input_monetary = st.number_input(
-            "Monetary Value (Total amount spent ($))", 
-            min_value=0.0, 
-            value=150.0,
-            help="The lifetime total financial value this customer has spent on our platform."
-        )
+    col1, col2, col3 = st.columns(3)
+with col1:
+    input_recency = st.slider(
+        "Recency (Days since last purchase)",
+        min_value=0,
+        max_value=365,
+        value=12,
+        help="How many days have passed since the customer last placed an order. Lower is better."
+    )
+with col2:
+    input_frequency = st.slider(
+        "Frequency (Total number of purchases)",
+        min_value=1,
+        max_value=100,
+        value=4,
+        help="The total number of successful orders this customer has ever made."
+    )
+with col3:
+    input_monetary = st.slider(
+        "Monetary Value (Total amount spent ($))",
+        min_value=1.0,
+        max_value=10000.0,
+        value=150.0,
+        step=10.0,
+        help="The lifetime total financial value this customer has spent on our platform."
+    )
+    
+if st.button("Predict Customer Segment"):
+    log_features = np.log1p([input_recency, input_frequency, input_monetary])
+    features_array = np.array(log_features).reshape(1, -1)
         
-    if st.button("Predict Customer Segment"):
-        log_features = np.log1p([input_recency, input_frequency, input_monetary])
-        features_array = np.array(log_features).reshape(1, -1)
+    scaled_features = scaler.transform(features_array)
+    predicted_cluster = kmeans.predict(scaled_features)[0]
         
-        scaled_features = scaler.transform(features_array)
-        predicted_cluster = kmeans.predict(scaled_features)[0]
-        
-        # --- TRUE DYNAMIC EVALUATION ---
-        is_high_spender = input_monetary >= MONETARY_LIMIT
-        is_frequent     = input_frequency >= FREQUENCY_LIMIT
-        is_stale        = input_recency >= RECENCY_LIMIT
-        is_brand_new    = input_frequency <= 2 and input_recency <= 14
+     # --- TRUE DYNAMIC EVALUATION ---
+    is_high_spender = input_monetary >= MONETARY_LIMIT
+    is_frequent     = input_frequency >= FREQUENCY_LIMIT
+    is_stale        = input_recency >= RECENCY_LIMIT
+    is_brand_new    = input_frequency <= 2 and input_recency <= 14
         
         # --- PERSONA ENGINE ---
-        if is_high_spender or is_frequent:
-            persona = "💎 High-Value Elite Segment"
-        elif is_stale:
-            persona = "⚠️ Churned / At-Risk Segment"
-        elif is_brand_new:
-            persona = "🛍️ New / Casual Shopper"
-        else:
-            persona = "📈 Regular Active Shopper"
+    if is_high_spender or is_frequent:
+        persona = "💎 High-Value Elite Segment"
+    elif is_stale:
+        persona = "⚠️ Churned / At-Risk Segment"
+    elif is_brand_new:
+        persona = "🛍️ New / Casual Shopper"
+    else:
+         persona = "📈 Regular Active Shopper"
             
-        st.success(f"🎯 **Model Output:** Cluster {predicted_cluster}")
-        st.info(f"👥 **Inferred Customer Persona:** {persona}")
-        st.write("This dynamic label evaluates cluster scale dynamically using live data distributions!")
+    st.success(f"🎯 **Model Output:** Cluster {predicted_cluster}")
+    st.info(f"👥 **Inferred Customer Persona:** {persona}")
+    st.write("This dynamic label evaluates cluster scale dynamically using live data distributions!")
+    
+    # --- ADD SCATTER PLOT VISUALIZATION ---
+    try:
+        import plotly.express as px
+        df_segmented = pd.read_csv("segmented_customer_data.csv")
+        
+        # Build the background cluster scatter plot
+        # Build the background cluster scatter plot with realistic, zoomed-in limits
+        fig = px.scatter(
+            df_segmented, 
+            x="Frequency", 
+            y="Monetary", 
+            color="Cluster", 
+            title="Where this customer sits in your market segments",
+            labels={"Frequency": "Total Purchases", "Monetary": "Total Spent ($)"},
+            opacity=0.4,
+            range_x=[0, 150],       # Cuts the X-axis off at 150 purchases instead of 1400
+            range_y=[0, 10000]      # Cuts the Y-axis off at $10,000 instead of $1.5 Million
+        )
+        
+        # Overlay the current user input as a bright star
+        fig.add_scatter(
+            x=[input_frequency], # <--- Make sure this has 'input_' in front
+            y=[input_monetary],  # <--- Make sure this has 'input_' in front
+            mode="markers",
+            marker=dict(color="crimson", size=15, symbol="star", line=dict(width=2, color="white")),
+            name="Current Customer"
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+    except Exception as e:
+        st.error(f"Could not render scatter plot map: {e}")
 
 # --- TAB 2: CHURN PREDICTION ---
 with tab2:
