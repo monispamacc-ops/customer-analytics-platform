@@ -87,105 +87,108 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.header("Customer Behavior Segments (K-Means)")
     st.write("Test an individual customer's metrics to see which cluster segment they belong to.")
-    
-    # Informative help section for end-users
-# Informative help section for end-users
+
+    # Professional Help Panel explaining customer personas
     with st.expander("ℹ️ How are these customer personas calculated?"):
-        st.markdown(f"""
-        Our machine learning engine categorizes users based on **RFM Quantiles** calculated live from the dataset distribution:
-        * **💎 High-Value Elite:** Spending $\ge$ ${MONETARY_LIMIT:.2f}$ or Frequency $\ge$ {int(FREQUENCY_LIMIT)} orders.
-        * **📈 Regular Active:** Standard active users falling between the fallback thresholds.
-        * **🛍️ New / Casual:** Recent users with Recency $\le$ 14 days and Frequency $\le$ 2 orders.
-        * **⚠️ Churned / At-Risk:** Inactive users whose last purchase exceeds {int(RECENCY_LIMIT)} days.
+        st.markdown("""
+        Our **K-Means Clustering model** analyzes historical behavioral patterns across three primary metrics. 
+        Adjust the sliders below to see real-time segment matching.
         """)
-    
+
+    # Create layout columns for the inputs
     col1, col2, col3 = st.columns(3)
-    col1, col2, col3 = st.columns(3)
-with col1:
-    input_recency = st.slider(
-        "Recency (Days since last purchase)",
-        min_value=0,
-        max_value=365,
-        value=12,
-        help="How many days have passed since the customer last placed an order. Lower is better."
-    )
-with col2:
-    input_frequency = st.slider(
-        "Frequency (Total number of purchases)",
-        min_value=1,
-        max_value=100,
-        value=4,
-        help="The total number of successful orders this customer has ever made."
-    )
-with col3:
-    input_monetary = st.slider(
-        "Monetary Value (Total amount spent ($))",
-        min_value=1.0,
-        max_value=10000.0,
-        value=150.0,
-        step=10.0,
-        help="The lifetime total financial value this customer has spent on our platform."
-    )
-    
-if st.button("Predict Customer Segment"):
-    log_features = np.log1p([input_recency, input_frequency, input_monetary])
-    features_array = np.array(log_features).reshape(1, -1)
-        
-    scaled_features = scaler.transform(features_array)
-    predicted_cluster = kmeans.predict(scaled_features)[0]
-        
-     # --- TRUE DYNAMIC EVALUATION ---
-    is_high_spender = input_monetary >= MONETARY_LIMIT
-    is_frequent     = input_frequency >= FREQUENCY_LIMIT
-    is_stale        = input_recency >= RECENCY_LIMIT
-    is_brand_new    = input_frequency <= 2 and input_recency <= 14
-        
+
+    with col1:
+        input_recency = st.slider(
+            "Recency (Days since last purchase)",
+            min_value=0,
+            max_value=365,
+            value=12,
+            step=1,
+            help="Days elapsed since the customer's last purchase activity."
+        )
+
+    with col2:
+        input_frequency = st.slider(
+            "Frequency (Total number of purchases)",
+            min_value=1,
+            max_value=150,
+            value=4,
+            step=1,
+            help="Total order frequency history on the platform."
+        )
+
+    with col3:
+        input_monetary = st.slider(
+            "Monetary Value (Total amount spent ($))",
+            min_value=1.0,
+            max_value=10000.0,
+            value=150.0,
+            step=10.0,
+            help="The lifetime total financial value this customer has spent on our platform."
+        )
+
+    # Everything below this line is perfectly indented by 4 spaces inside tab1
+    if st.button("Predict Customer Segment"):
+        log_features = np.log1p([input_recency, input_frequency, input_monetary])
+        features_array = np.array(log_features).reshape(1, -1)
+
+        scaled_features = scaler.transform(features_array)
+        predicted_cluster = kmeans.predict(scaled_features)[0]
+
+        # --- TRUE DYNAMIC EVALUATION ---
+        is_high_spender = input_monetary >= MONETARY_LIMIT
+        is_frequent     = input_frequency >= FREQUENCY_LIMIT
+        is_stale        = input_recency >= RECENCY_LIMIT
+        is_brand_new    = input_frequency <= 2 and input_recency <= 14
+
         # --- PERSONA ENGINE ---
-    if is_high_spender or is_frequent:
-        persona = "💎 High-Value Elite Segment"
-    elif is_stale:
-        persona = "⚠️ Churned / At-Risk Segment"
-    elif is_brand_new:
-        persona = "🛍️ New / Casual Shopper"
-    else:
-         persona = "📈 Regular Active Shopper"
+        if is_high_spender or is_frequent:
+            persona = "💎 High-Value Elite Segment"
+        elif is_stale:
+            persona = "⚠️ Churned / At-Risk Segment"
+        elif is_brand_new:
+            persona = "🛍️ New / Casual Shopper"
+        else:
+            persona = "📈 Regular Active Shopper"
+
+        st.success(f"🎯 **Model Output:** Cluster {predicted_cluster}")
+        st.info(f"👥 **Inferred Customer Persona:** {persona}")
+        st.write("This dynamic label evaluates cluster scale dynamically using live data distributions!")
+
+        # --- ADD SCATTER PLOT VISUALIZATION ---
+        try:
+            import plotly.express as px
+            df_segmented = pd.read_csv("segmented_customer_data.csv")
+
+            # Build the background cluster scatter plot with realistic, zoomed-in limits
+            fig = px.scatter(
+                df_segmented, 
+                x="Frequency", 
+                y="Monetary", 
+                color="Cluster", 
+                title="Where this customer sits in your market segments",
+                labels={"Frequency": "Total Purchases", "Monetary": "Total Spent ($)"},
+                opacity=0.4,
+                range_x=[0, 150],       # Cuts the X-axis off at 150 purchases instead of 1400
+                range_y=[0, 10000]      # Cuts the Y-axis off at $10,000 instead of $1.5 Million
+            )
+
+            # Overlay the current user input as a bright star
+            fig.add_scatter(
+                x=[input_frequency], 
+                y=[input_monetary],  
+                mode="markers",
+                marker=dict(color="crimson", size=15, symbol="star", line=dict(width=2, color="white")),
+                name="Current Customer"
+            )
             
-    st.success(f"🎯 **Model Output:** Cluster {predicted_cluster}")
-    st.info(f"👥 **Inferred Customer Persona:** {persona}")
-    st.write("This dynamic label evaluates cluster scale dynamically using live data distributions!")
-    
-    # --- ADD SCATTER PLOT VISUALIZATION ---
-    try:
-        import plotly.express as px
-        df_segmented = pd.read_csv("segmented_customer_data.csv")
-        
-        # Build the background cluster scatter plot
-        # Build the background cluster scatter plot with realistic, zoomed-in limits
-        fig = px.scatter(
-            df_segmented, 
-            x="Frequency", 
-            y="Monetary", 
-            color="Cluster", 
-            title="Where this customer sits in your market segments",
-            labels={"Frequency": "Total Purchases", "Monetary": "Total Spent ($)"},
-            opacity=0.4,
-            range_x=[0, 150],       # Cuts the X-axis off at 150 purchases instead of 1400
-            range_y=[0, 10000]      # Cuts the Y-axis off at $10,000 instead of $1.5 Million
-        )
-        
-        # Overlay the current user input as a bright star
-        fig.add_scatter(
-            x=[input_frequency], # <--- Make sure this has 'input_' in front
-            y=[input_monetary],  # <--- Make sure this has 'input_' in front
-            mode="markers",
-            marker=dict(color="crimson", size=15, symbol="star", line=dict(width=2, color="white")),
-            name="Current Customer"
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-    except Exception as e:
-        st.error(f"Could not render scatter plot map: {e}")
+            # Render the chart inside the block cleanly
+            st.plotly_chart(fig, use_container_width=True)
+
+        except Exception as e:
+            st.error(f"Could not render scatter plot map: {e}")
+ 
 
 # --- TAB 2: CHURN PREDICTION ---
 with tab2:
@@ -236,22 +239,54 @@ with tab2:
         
         # Churn probability score (index 1 is typically the 'Churned' label probability)
         churn_probability = probabilities[1] * 100
-        
-        # Sleek, user-friendly risk assessment cards
+         # Sleek, user-friendly risk assessment cards
         st.markdown("---")
         st.subheader("📊 Risk Analysis Results")
-        
-        if churn_probability >= 70:
-            st.error(f"🚨 **High Flight Risk:** This customer has a **{churn_probability:.1f}%** chance of churning.")
-            st.warning("🎯 **Retention Strategy Action Required:** Recommend pushing a personalized high-value discount or proactive retention offer immediately.")
-        elif 35 <= churn_probability < 70:
-            st.warning(f"⚠️ **Moderate Risk:** This customer has a **{churn_probability:.1f}%** chance of churning.")
-            st.info("💡 **Engagement Opportunity:** Consider adding them to a re-engagement email sequence.")
-        else:
-            st.success(f"✅ **Low Risk / Stable:** This customer has a **{churn_probability:.1f}%** risk of churn.")
-            st.write("This user is highly stable and highly integrated with regular active purchasing cycles.")
 
-# --- TAB 3: RECOMMENDATION ENGINE ---
+        # 1. Map conditions to clean status labels and messages
+        if churn_probability >= 70:
+            status_label = "High Risk 🚨"
+            delta_msg = "Immediate retention action required!"
+            bar_color = "red"
+        elif 35 <= churn_probability < 70:
+            status_label = "Moderate Risk ⚠️"
+            delta_msg = "Monitor closely / Engagement opportunity"
+            bar_color = "orange"
+        else:
+            status_label = "Low Risk / Stable ✅"
+            delta_msg = "Customer is highly loyal"
+            bar_color = "green"
+
+        # 2. Create side-by-side metric tiles
+        metric_col1, metric_col2 = st.columns(2)
+    
+        with metric_col1:
+            st.metric(
+                label="Customer Security Status", 
+                value=status_label, 
+                delta=delta_msg,
+                delta_color="inverse" if churn_probability >= 35 else "normal"
+            )
+        
+        with metric_col2:
+            st.metric(
+                label="Flight Risk Probability", 
+                value=f"{churn_probability:.1f}%"
+            )
+    
+        # 3. Visual progress meter bar
+        st.write("**Real-time Flight Risk Gauge:**")
+        st.progress(float(churn_probability / 100))
+
+        # 4. Detailed strategic recommendation text box underneath
+        if churn_probability >= 70:
+            st.error(f"⚠️ **Action Plan:** Recommend pushing an aggressive personalized high-value discount or a direct outreach sequence immediately.")
+        elif 35 <= churn_probability < 70:
+            st.warning(f"💡 **Action Plan:** Consider adding this customer to an automated re-engagement email newsletter sequence.")
+        else:
+            st.success(f"✨ **Action Plan:** User is stable and integrated within regular purchasing cycles. Keep standard marketing cadences.")
+
+# --- TAB 3: RECOMMENDATION ENGINE ---   
 with tab3:
     st.header("Personalized Product Suggestions (Cosine Similarity)")
     st.write("Discover highly relevant product recommendations based on collective consumer purchasing patterns.")
@@ -286,13 +321,25 @@ with tab3:
         recommendations = item_similarity_df[selected_product].sort_values(ascending=False)
         top_recommendations = recommendations.iloc[1:6]
         
-        # Render the outputs cleanly in a structured list
+        # Render the outputs as sleek, scannable product rows
         for rank, (product_name, score) in enumerate(top_recommendations.items(), 1):
             match_percentage = score * 100
             
-            # Create clear, scannable recommendation rows
-            st.markdown(f"""
-            **{rank}. {product_name}**  
-            *🎯 Similarity Match Score:* `{match_percentage:.1f}%`
-            """)
-            st.progress(float(score))
+            # Create a stylized container card for each recommended product
+            with st.container(border=True):
+                # Split row into layout columns: Rank badge, Product Title, and Confidence Gauge
+                card_col1, card_col2, card_col3 = st.columns([1, 5, 3])
+                
+                with card_col1:
+                    # Bold placement badge
+                    st.markdown(f"### 📦 #{rank}")
+                    
+                with card_col2:
+                    # Product description/name
+                    st.markdown(f"**{product_name}**")
+                    st.caption("Frequently purchased alternative")
+                    
+                with card_col3:
+                    # Numeric confidence metric alongside a matching mini-progress bar
+                    st.metric(label="Match Confidence", value=f"{match_percentage:.1f}%")
+                    st.progress(float(max(0.0, min(1.0, score))))
