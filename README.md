@@ -1,21 +1,20 @@
 <div align="center">
   <h3>🎯 Smart Customer Analytics Platform</h3>
 </div>
-## 📊Module 1:Customer Analytics Platform: AI-Driven RFM Segmentation
+
+## 📊 Module 1: Customer Analytics Platform: AI-Driven RFM Segmentation
 
 This is a system that takes retail transaction data and divides it into groups based on customer behavior using RFM Clustering. The system is designed to be used in real-world situations and can be easily adapted to work with data sources so businesses can track the value of their customers over time.
 
 ## Key Highlights and Business Value
 
 * This system is 100 percent ready for use in real-world situations: it is built on a RFM architecture that can be used by any company regardless of its size or the size of its dataset.
-
-* It can automatically identify customers. Add tags to them so marketing teams can send targeted emails to the right people, such as special rewards for important customers or messages to try to win back customers who have not made a purchase in a while.
-
-* It is also designed to handle data, such as very high-value customers without affecting the overall accuracy of the system.
+* It can automatically identify customers and add tags to them so marketing teams can send targeted emails to the right people, such as special rewards for important customers or messages to try to win back customers who have not made a purchase in a while.
+* It is also designed to handle skewed data and high-value outliers without affecting the overall accuracy of the system.
 
 ## Core Implementation Steps
 
-### 1. Data. Engineering
+### 1. Data Engineering
 
 * We started with 541,909 records and cleaned them up to get 530,104 good records by removing cancelled orders and test data.
 
