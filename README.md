@@ -1,4 +1,7 @@
-# Customer Analytics Platform: AI-Driven RFM Segmentation
+<div align="center">
+  <h3>🎯 Smart Customer Analytics Platform</h3>
+</div>
+## 📊Module 1:Customer Analytics Platform: AI-Driven RFM Segmentation
 
 This is a system that takes retail transaction data and divides it into groups based on customer behavior using RFM Clustering. The system is designed to be used in real-world situations and can be easily adapted to work with data sources so businesses can track the value of their customers over time.
 
